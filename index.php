@@ -1,10 +1,24 @@
 <?php
+/*
+ * khời động session trong PHP
+ */
 session_start();
-
-if (!isset($_SESSION["loggedin"]) || ($_SESSION["loggedin"] != true)){
-    header("location: login.php");
+/*
+ * kiểm tra xem người dùng đã đăng nhập hay chưa
+ * nếu chưa đăng nhập chúng ta redirect về trang login.php
+ *
+ */
+if(!isset($_SESSION["loggedin"])||($_SESSION["loggedin"] != true)){
+    //chuyển hướng redirect trong PHP dùng hàm header
+    header("Location: login.php");
     exit;
 }
+echo"<pre>";
+print_r($_SESSION);
+echo"</pre>";
+/*
+ * nếu đã đăng nhập thành công
+ */
 ?>
 
 <!DOCTYPE html>
@@ -22,8 +36,8 @@ if (!isset($_SESSION["loggedin"]) || ($_SESSION["loggedin"] != true)){
     <div class="row">
         <div class="col-md-12">
             <h1>Đăng nhập thành công</h1>
-            <p>Tên người dùng: </p>
-            <p><a href="">Đăng xuất</a></p>
+            <p>Tên người dùng: <?php echo $_SESSION["username"] ?></p>
+            <p><a href="logout.php">Đăng xuất</a></p>
         </div>
     </div>
 </div>

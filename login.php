@@ -1,5 +1,58 @@
 <?php
 session_start();
+if (isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"] == true)){
+    header("Location: index.php");
+    exit;
+}
+// nạp kết nối CSDL vào
+include_once "config.php";
+/*
+ * xủa lý đăng nhập
+ */
+//tạo biến chứa lỗi trong quá trình đăng nhập
+$errors=array();
+if(isset($_POST)&&!empty($_POST)){
+    if(!isset($_POST["username"]) || empty($_POST["username"])){
+        $errors[]="Tên đăng nhập bị sai";
+    }
+    if(!isset($_POST["password"]) || empty($_POST["password"])){
+        $errors[]="Mật khẩu bị sai";
+    }
+    if(is_array($errors) && empty($errors)){
+        $username=$_POST["username"];
+        $password=md5($_POST["password"]);
+        $sqlLogin="SELECT * FROM user WHERE username = ? AND password = ?";
+
+        $stmt = $connection->prepare($sqlLogin);
+
+        //Bind 3 biến vào trong câu lệnh SQL
+        $stmt->bind_param("ss", $username, $password);
+
+        $stmt->execute();
+
+        $res=$stmt->get_result();
+
+        $row=$res->fetch_array(MYSQLI_ASSOC);
+        if(isset($row['id'])&&($row['id']>0)){
+            /*
+             * nếu tồn tại bản ghi
+             * thì sẽ tạo ra session đăng nhập
+             */
+            $_SESSION["loggedin"]=true;
+            $_SESSION["username"]=$row['username'];
+            header("Location: index.php");
+            exit;
+        }else{
+            $errors[]="Thông tin đăng nhập không đúng";
+        }
+    }
+}
+if(is_array($errors)&&!empty($errors)){
+    $errors_string = implode("<br>", $errors);
+    echo "<div class='alert alert-danger'>";
+    echo $errors_string;
+    echo "</div>";
+}
 ?>
 
 <!DOCTYPE html>
@@ -12,58 +65,6 @@ session_start();
 
 </head>
 <body>
-
-<?php
-
-include_once "config.php";
-
-$errors = array();
-
-if(isset($_POST) && !empty($_POST)) {
-
-
-    if (!isset($_POST["username"]) || empty($_POST["username"])) {
-        $errors[] = "chưa nhập Username";
-    }
-
-    if (!isset($_POST["password"]) || empty($_POST["password"])) {
-        $errors[] = "chưa nhập Password";
-    }
-
-    if (is_array($errors) && empty($errors)) {
-
-        $username = $_POST["username"];
-        $password = md5($_POST["password"]);
-
-        $sqllogin = "SELECT FROM user WHERE username = ? AND password = ?";
-
-        $stmt = $connection->prepare($sqllogin);
-
-        $stmt->bind_param("ss", $username, $password);
-
-        $stmt->execute();
-
-        $res = $stmt->get_result();
-
-        $row = $res->fetch_array(MYSQLI_ASSOC);
-
-        if (isset($row['id']) && ($row['id'] > 0)) {
-            $_SESSION["loggedin"] = true;
-            $_SESSION["username"] = $row["username"];
-
-            echo "<pre>";
-            print_r($row);
-            echo "</pre>";
-
-            echo "<pre>";
-            print_r($_SESSION);
-            echo "</pre>";
-        }
-
-    }
-
-}
-?>
 
 <div class="container" style="margin-top: 50px">
     <div class="row">
